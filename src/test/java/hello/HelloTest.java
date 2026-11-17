@@ -8,6 +8,6 @@ import org.junit.jupiter.api.Test;
 class HelloTest {
     @Test
     void greetsByName() {
-        assertEquals("Hello, world!", Hello.greeting("Le Qi"));
+        assertEquals("Hello, Le Qi!", Hello.greeting("Le Qi"));
     }
 }
