@@ -1,0 +1,6 @@
+{
+  // VS Code offers to install these when you open this folder
+  "recommendations": [
+    "vscjava.vscode-java-pack"
+  ]
+}

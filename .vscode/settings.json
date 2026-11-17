@@ -1,0 +1,7 @@
+{
+  // Keep VS Code's build output out of the way of Maven's
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "files.exclude": {
+    "**/target": true
+  }
+}

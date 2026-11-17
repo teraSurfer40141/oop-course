@@ -1,0 +1,53 @@
+# Runs every time you push. A green tick on GitHub means everything compiled and all tests passed.
+# The coverage report is on the run's summary page, and the full HTML version is attached as "coverage".
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Compile and run the tests
+        run: ./mvnw -B test
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          # The report is normally written by the test run; make it here too in case a test failed
+          [ -f target/jacoco.exec ] && ./mvnw -B -q jacoco:report || true
+          f=target/site/jacoco/jacoco.csv
+          if [ ! -f "$f" ]; then
+            echo "No coverage report: the code did not compile, or no tests ran." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          {
+            echo "## Line coverage"
+            echo
+            echo "| Class | Lines covered | Lines | % |"
+            echo "|---|---:|---:|---:|"
+            # CSV columns: GROUP,PACKAGE,CLASS,...,LINE_MISSED(8),LINE_COVERED(9),...
+            tail -n +2 "$f" | sort -t, -k2,2 -k3,3 | awk -F, '{
+              total = $8 + $9
+              pct = total ? sprintf("%.0f", 100 * $9 / total) : "-"
+              printf "| %s.%s | %d | %d | %s |\n", $2, $3, $9, total, pct
+            }'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: target/site/jacoco/
+          if-no-files-found: ignore
